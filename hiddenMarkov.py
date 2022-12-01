@@ -6,6 +6,7 @@ import numpy as np
 
 # Calculate the transition probability of moving from state i to state j
 # Here: The probability that Pitch i is followed by Pitch j
+
 # Design choice: At the moment we consider all pitches of a pitcher in a game as a sequence of pitches, but we could further divide them into at-bat sequences, which seems to be closer to reality.
 # The reason for this is that the choice of pitches should be fairly specific, depending on who the opposing batter is?!
 
@@ -49,15 +50,15 @@ def transitionProbabilities(pbp):
                     if previousPitch not in allPitcherPercentages[pitcher]:
 
                         allPitcherPercentages[pitcher][previousPitch] = {'4-Seam Fastball': 0,
-                                                                             'Fastball': 0,
-                                                                             'Sinker': 0,
-                                                                             'Slider': 0,
-                                                                             'Split-Finger': 0,
-                                                                             'Knuckle Curve': 0,
-                                                                             'Knuckleball': 0,
-                                                                             'Curveball': 0,
-                                                                             'Cutter': 0,
-                                                                             'Changeup': 0}
+                                                                         'Fastball': 0,
+                                                                         'Sinker': 0,
+                                                                         'Slider': 0,
+                                                                         'Split-Finger': 0,
+                                                                         'Knuckle Curve': 0,
+                                                                         'Knuckleball': 0,
+                                                                         'Curveball': 0,
+                                                                         'Cutter': 0,
+                                                                         'Changeup': 0}
 
                     allPitcherPercentages[pitcher][previousPitch][currentPitch] += 1
 
@@ -76,6 +77,36 @@ def transitionProbabilities(pbp):
 
 # Calculate the emission probability expressing the probability of an observation o_t being generated from a state i
 # Here: The probability of the count given Pitch i
-def emissionProbabilities():
+def emissionProbabilities(pbp):
+
+    # There are some pitches that are not classified which we ignore
+    pbp = pbp[pbp['pitch_name'].notna()]
+
+    countPitch = {}
+
+    pitches = pd.DataFrame(pbp)
+    pitches = pitches.reset_index()
+
+    for index, row in pitches.iterrows():
+
+        # New variable to give count
+        count = str(row['balls']) + "-" + str(row['strikes'])
+
+        if row['pitcher'] not in countPitch.keys():
+            countPitch[row['pitcher']] = {}
+        if row['pitch_name'] not in countPitch[row['pitcher']].keys():
+            countPitch[row['pitcher']][row['pitch_name']] = {}
+
+        if count not in countPitch[row['pitcher']][row['pitch_name']].keys():
+            countPitch[row['pitcher']][row['pitch_name']][count] = 0
+
+        # Count the times a pitch has been thrown in a count
+        countPitch[row['pitcher']][row['pitch_name']][count] += 1
+
+    return countPitch
+
+# Calculate probability of next state
+
+def forwardAlgorithm():
 
     return 1
