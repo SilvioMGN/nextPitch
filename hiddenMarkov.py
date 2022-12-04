@@ -11,68 +11,61 @@ import numpy as np
 # The reason for this is that the choice of pitches should be fairly specific, depending on who the opposing batter is?!
 
 
-def transitionProbabilities(pbp):
+def transitionProbabilities(pbp, pitcher):
 
     # There are some pitches that are not classified which we ignore
     pbp = pbp[pbp['pitch_name'].notna()]
 
-    allPitcherPercentages = {}
+    pitcherPercentage = {}
 
-    unqiuePitchers = pbp['pitcher'].unique()
+    allPitches = pbp[pbp['player_name_y'] == pitcher]
 
-    for pitcher in unqiuePitchers:
+    print("New Pitcher: " + str(pitcher))
 
-        allPitcherPercentages[pitcher] = {}
+    pitches = allPitches[['pitch_number', 'game_date', 'pitch_name']]
+    unqiueGames = allPitches['game_date'].unique()
 
-        allPitches = pbp[pbp['pitcher'] == pitcher]
+    for game in unqiueGames:
 
-        print("New Pitcher: " + str(pitcher))
+        # how many pitches were thrown by the pitcher in one game
+        numPitchesInGame = len(allPitches[allPitches['game_date'] == game])
+        # full pitch sequence in one game
+        pitchListGame = list(
+            pitches[pitches['game_date'] == game]['pitch_name'])
 
-        pitches = allPitches[['pitch_number', 'game_date', 'pitch_name']]
-        unqiueGames = allPitches['game_date'].unique()
+        for i in range(numPitchesInGame-1):
 
-        for game in unqiueGames:
+            currentPitch = pitchListGame[i]
+            previousPitch = pitchListGame[i+1]
 
-            # how many pitches were thrown by the pitcher in one game
-            numPitchesInGame = len(
-                allPitches[allPitches['game_date'] == game])
-            # full pitch sequence in one game
-            pitchListGame = list(
-                pitches[pitches['game_date'] == game]['pitch_name'])
+            if currentPitch != "Eephus" and previousPitch != "Eephus":
 
-            for i in range(numPitchesInGame-1):
+                if previousPitch not in pitcherPercentage:
 
-                currentPitch = pitchListGame[i]
-                previousPitch = pitchListGame[i+1]
+                    pitcherPercentage[previousPitch] = {'4-Seam Fastball': 0,
+                                                                     'Fastball': 0,
+                                                                     'Sinker': 0,
+                                                                     'Slider': 0,
+                                                                     'Split-Finger': 0,
+                                                                     'Knuckle Curve': 0,
+                                                                     'Knuckleball': 0,
+                                                                     'Curveball': 0,
+                                                                     'Cutter': 0,
+                                                                     'Changeup': 0}
 
-                if currentPitch != "Eephus" and previousPitch != "Eephus":
+                pitcherPercentage[previousPitch][currentPitch] += 1
 
-                    if previousPitch not in allPitcherPercentages[pitcher]:
+    print(pitcherPercentage)
+    print("AFTER PERCENTAGE")
+    for previousPitch in pitcherPercentage.keys():
+        sumPitch = sum(pitcherPercentage[previousPitch].values())
+        for pitch in pitcherPercentage[previousPitch]:
+                pitchNum = pitcherPercentage[previousPitch][pitch]
 
-                        allPitcherPercentages[pitcher][previousPitch] = {'4-Seam Fastball': 0,
-                                                                         'Fastball': 0,
-                                                                         'Sinker': 0,
-                                                                         'Slider': 0,
-                                                                         'Split-Finger': 0,
-                                                                         'Knuckle Curve': 0,
-                                                                         'Knuckleball': 0,
-                                                                         'Curveball': 0,
-                                                                         'Cutter': 0,
-                                                                         'Changeup': 0}
+                pitcherPercentage[previousPitch][pitch] = pitchNum/sumPitch
 
-                    allPitcherPercentages[pitcher][previousPitch][currentPitch] += 1
-
-        for key in allPitcherPercentages:
-
-            for previousPitch in allPitcherPercentages[key]:
-                sumPitch = sum(
-                    allPitcherPercentages[key][previousPitch].values())
-                for pitch in allPitcherPercentages[key][previousPitch]:
-                    pitchNum = allPitcherPercentages[key][previousPitch][pitch]
-
-                    allPitcherPercentages[key][previousPitch][pitch] = pitchNum/sumPitch
-
-    return allPitcherPercentages
+    print(pitcherPercentage)
+    return pitcherPercentage
 
 
 # Calculate the emission probability expressing the probability of an observation o_t being generated from a state i
@@ -106,6 +99,7 @@ def emissionProbabilities(pbp):
     return countPitch
 
 # Calculate probability of next state
+
 
 def forwardAlgorithm():
 
