@@ -34,9 +34,7 @@ pbp = pd.merge(pbp, player_id, left_on="pitcher", right_on="player_id")
 # Remove Spring Training games
 pbp = pbp[pbp['game_type'] != "S"]
 
-# pbp.to_csv('pbp.csv')
-
-# print(pbp['pitch_number'])
+# you can save the play-by-play data via: pbp.to_csv('pbp.csv')
 
 # only needs to be run if run first time
 # TO-DO: Find a better way to do this because it is very time consuming
@@ -45,11 +43,12 @@ pbp = pbp[pbp['game_type'] != "S"]
 
 # TO-DO: Change functiom so that we enter all pitchers here, so the functions gets called for every pitcher seperatly => makes it easier when looking at single pitchers
 pitcher = 'Cole, Gerrit'
-allPitcherPercentages = transitionProbabilities(pbp, pitcher)
-np.save("allPitcherPercentages.npy", allPitcherPercentages)
+pitcherPercentages = transitionProbabilities(pbp, pitcher)
+np.save("allPitcherPercentages.npy", pitcherPercentages)
 
-# allPitcherPercentages = np.load('allPitcherPercentages.npy', allow_pickle=True)
-#emission = emissionProbabilities(pbp)
-#print(emission)
+allPitcherPercentages = np.load('allPitcherPercentages.npy', allow_pickle=True)
+emission = emissionProbabilities(pbp, pitcher)
 
+initialDistribution = 0
 
+p = forwardAlgorithm(pbp[pbp['player_name_y'] == pitcher], pitcherPercentages, emission, initialDistribution) 
